@@ -18,7 +18,7 @@ LibViso2 GUI is a native **Windows desktop application** that provides an intera
    - [Parameters](#parameters)
 6. [Development](#development)
    - [Project Structure](#project-structure)
-   - [Building the Bundled LibViso2 Library](#building-the-bundled-libviso2-library)
+   - [Target platforms](#target-platforms)
    - [Debugging](#debugging)
    - [Improvements](#improvements)
 7. [Extras](#extras)
@@ -76,11 +76,12 @@ _The application opens two windows: a video window showing the current stereo fr
 
 ### Prerequisites
 
-- **Windows 10 or 11** (the application relies on Win32, Direct2D, GDI+, and WIC).
-- **Visual Studio 2022** with the **"Desktop development with C++"** workload and the **C++ CMake tools** component (this provides both the MSVC toolchain and CMake, which the build scripts locate automatically via `vswhere`).
+- **Windows 10 or 11** (the application relies on Win32, Direct2D, GDI+, and WIC). Builds and runs on **x86 (Win32)**, **x64**, and **ARM64**.
+- **Visual Studio 2022** with the **"Desktop development with C++"** workload and the **C++ CMake tools** component (this provides both the MSVC toolchain and CMake, which the build scripts locate automatically via `vswhere`). For x64/ARM64 native builds make sure the matching build tools are installed in the VS installer.
+- **Visual C++ 2015–2022 Redistributable** on the machine that *runs* the app — it provides `VCRUNTIME140.dll`. (The Universal CRT itself ships with Windows 10/11, so no other runtime is bundled.)
 - _(Optional)_ **Visual Studio Code** with the C/C++ and CMake Tools extensions, for the preconfigured build/debug tasks.
 
-> All third-party libraries (LibViso2, libpng, zlib) are already provided precompiled under `libs/`, so no manual dependency setup is required to build and run the app.
+> The **Win32** dependency binaries (LibViso2, libpng, zlib) are committed under `libs/bin/Win32` + `libs/lib/Win32`, so a default Win32 build needs no dependency setup. For **x64/ARM64**, the dependencies are compiled from source on demand — see [Target platforms](#target-platforms).
 
 ### Clone the Repository
 
@@ -111,21 +112,24 @@ To obtain it:
 
 ### Setup Steps
 
-The project uses **CMake** with the Visual Studio generator (Win32 / x86). You can build it either from VS Code or directly from the command line.
+The project uses **CMake** with the Visual Studio generator. The **target platform**
+(`Win32` / `x64` / `ARM64`) is selectable and defaults to `Win32` — see
+[Target platforms](#target-platforms). You can build from VS Code or the command line.
 
 **Option A — VS Code (recommended):**
 
 1. Open the project folder in VS Code.
-2. Run the task **`(LibViso2 App) Configure`** (Terminal → Run Task…) to generate the CMake build files.
-3. Run **`(LibViso2 App) Build [Release]`** (or `[Debug]`) to compile the application.
-   - The tasks `(LibViso2 App) Clean and Rebuild [Debug]/[Release]` perform a clean rebuild in one step.
+2. _(x64/ARM64 only)_ Set `libviso2.targetPlatform` in `.vscode/settings.json`, then run **`(Dependencies) Build`** once to compile the third-party libs for that target. (Win32 is committed, so this is a no-op.)
+3. Run the task **`(LibViso2 App) Configure`** (Terminal → Run Task…) to generate the CMake build files.
+4. Run **`(LibViso2 App) Build [Release]`** (or `[Debug]`) to compile the application.
+   - `(LibViso2 App) Clean and Rebuild [Debug]/[Release]` perform a clean rebuild in one step.
+   - Switching platform is safe: the configure step auto-cleans a stale cache/output from a previous target.
 
 **Option B — Command line:**
 
 ```powershell
-# From the project root
-mkdir build
-cmake -S . -B build -A Win32
+# From the project root (replace Win32 with x64 or ARM64 as desired)
+cmake -S . -B build -A Win32 -T host=ARM64
 cmake --build build --config Release
 ```
 
@@ -195,7 +199,7 @@ Images must be **PNG** grayscale files; left/right frames are paired by matching
 │   │   └── utils/           # Threading, console, image & PNG helpers
 │   ├── gui/           # Win32 windows (video window, info window, base window)
 │   └── viso/          # Visual-odometry orchestration over LibViso2
-├── libs/              # Precompiled dependencies (LibViso2, libpng, zlib) + sources
+├── libs/              # Dependency sources + per-platform prebuilt binaries (bin|lib/<platform>)
 ├── assets/
 │   ├── datasets/      # Stereo sequences (git-ignored, downloaded separately)
 │   └── screenshots/   # Images used by this README
@@ -203,12 +207,21 @@ Images must be **PNG** grayscale files; left/right frames are paired by matching
 └── CMakeLists.txt     # Top-level build definition
 ```
 
-### Building the Bundled LibViso2 Library
+### Target platforms
 
-LibViso2 itself is linked as a precompiled DLL (`libs/bin/libviso2.dll`). If you modify its sources under `libs/include/libviso2/`, dedicated VS Code tasks let you rebuild it independently:
+The app builds for **`Win32` (x86)**, **`x64`**, and **`ARM64`**. The target is chosen at configure time:
 
-- **`(LibViso2 Lib) Configure`** / **`(LibViso2 Lib) Build [Release]`** — configure and compile the library.
-- **`(LibViso2 Lib) Clean and Rebuild [Release]`** — clean, rebuild, and **deploy** the freshly built `libviso2.dll` / `libviso2.lib` back into `libs/bin` and `libs/lib`, where the application links them.
+- **VS Code:** set `"libviso2.targetPlatform"` in `.vscode/settings.json` (`Win32` | `x64` | `ARM64`).
+- **CLI:** pass `-A <platform>` to CMake (or `-Platform` to `.vscode/scripts/cmake-configure.ps1`).
+
+Dependency artifacts live per platform under `libs/bin/<platform>` and `libs/lib/<platform>`:
+
+- **Win32** binaries are **committed** (zero-friction default build).
+- **x64 / ARM64** are built from source on demand by **`(Dependencies) Build`** (skip-if-present) and are git-ignored. **`(Dependencies) Rebuild`** forces a clean rebuild of all three libs (zlib → libpng → libviso2) for the current target and redeploys them.
+
+All targets link the **Universal CRT** — no VS2013/CRT redistributable is bundled. On **ARM64**, libviso2's SSE2/SSE3 intrinsics are bridged to NEON via a vendored `sse2neon.h` (in `libs/include/libviso2/`), enabled automatically for the ARM64 target (which also needs MSVC's `/Zc:preprocessor`, set by the build).
+
+> If you modify libviso2's own sources under `libs/include/libviso2/`, run **`(Dependencies) Rebuild`** to recompile and redeploy `libviso2.dll` / `.lib` for the current target.
 
 ### Debugging
 
@@ -218,7 +231,6 @@ The `.vscode/launch.json` file defines ready-to-use debug configurations (`cppvs
 
 Potential future enhancements:
 
-- **Native ARM64 build** — the visual-odometry core relies on SSE2/SSE3 intrinsics; a native ARM64 port would require mapping them to NEON (e.g. via `sse2neon`) and rebuilding all dependencies.
 - **In-app configuration UI** for calibration and dataset selection (currently compile-time / CLI).
 - **Live camera input** in addition to offline image sequences.
 - **Monocular odometry** mode (LibViso2 also provides a monocular estimator).
@@ -234,8 +246,11 @@ A: Ensure `<imagesPath>` points to a folder of PNG stereo pairs and that the `/p
 **Q: Can I use my own dataset?**
 A: Yes — provide grayscale PNG stereo pairs and update the calibration parameters in `src/viso/viso_core.cpp` to match your camera.
 
-**Q: Why is the build fixed to Win32 (x86)?**
-A: The bundled dependencies are 32-bit. On ARM64 Windows the x86 build runs under emulation; a native build would require recompiling every dependency (see [Improvements](#improvements)).
+**Q: Which CPU architectures are supported?**
+A: `Win32` (x86), `x64`, and `ARM64` — selectable via `libviso2.targetPlatform` (VS Code) or `-A` (CLI). Win32 dependency binaries are committed; x64/ARM64 are built from source on demand (see [Target platforms](#target-platforms)).
+
+**Q: The app fails to start with a missing `VCRUNTIME140.dll` error.**
+A: Install the **Visual C++ 2015–2022 Redistributable** for your architecture. The Universal CRT ships with Windows 10/11, but `VCRUNTIME140.dll` comes with that redistributable.
 
 ## Acknowledgments
 

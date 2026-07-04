@@ -77,8 +77,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     libviso2
 )
 
-# Install required DLLs for the selected platform (whatever exists in DEP_BIN,
-# e.g. msvcr120d.dll ships only with the Win32 prebuilt set).
+# Install the platform's dependency DLLs (whatever exists in DEP_BIN).
+# All targets link the Universal CRT (shipped with Windows 10/11), so no CRT
+# redistributable is bundled.
 install(DIRECTORY "${DEP_BIN}/"
     DESTINATION bin
     FILES_MATCHING PATTERN "*.dll"

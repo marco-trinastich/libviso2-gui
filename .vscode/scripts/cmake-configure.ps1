@@ -30,6 +30,19 @@ if ($cmakePath) {
     Write-Host "Using CMake from: $cmakePath"
     Write-Host "Target platform: $Platform"
 
+    # If this build directory was previously configured for a different target
+    # platform, CMake refuses to reconfigure. Wipe the stale cache so switching
+    # platforms (Win32 <-> x64 <-> ARM64) just works.
+    if (Test-Path "CMakeCache.txt") {
+        $prevLine = Select-String -Path "CMakeCache.txt" -Pattern "^CMAKE_GENERATOR_PLATFORM:" | Select-Object -First 1
+        if ($prevLine -and ($prevLine.Line -notmatch "=$Platform$")) {
+            Write-Host "Build dir was configured for another platform; cleaning stale CMake cache and output..."
+            # Also drop the previous platform's output so no stale/foreign-arch
+            # artifacts linger next to the exe.
+            Remove-Item -Recurse -Force "CMakeCache.txt", "CMakeFiles", "Release", "Debug" -ErrorAction SilentlyContinue
+        }
+    }
+
     # -A selects the TARGET platform (Win32/x64/ARM64); -T host=... keeps the
     # native host toolchain for fast compilation, independent of the target.
     $cmakeArgs = @(
