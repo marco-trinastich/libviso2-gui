@@ -1,0 +1,1 @@
+build\Release\libviso2gui.exe ./assets/datasets/libviso2/2010_03_09_drive_0019 /p1=I1 /p2=I2

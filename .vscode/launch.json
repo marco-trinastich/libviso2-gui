@@ -1,0 +1,72 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(Debug) Clean & Rebuild",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/libviso2gui.exe",
+            "args": [
+                "${config:libviso2.imagesPath}",
+                "${config:libviso2.imagesPrefixLeft}",
+                "${config:libviso2.imagesPrefixRight}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal",
+            "preLaunchTask": "(LibViso2 App) Clean and Rebuild [Debug]"
+        },
+        {
+            "name": "(Debug) Build",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/libviso2gui.exe",
+            "args": [
+                "${config:libviso2.imagesPath}",
+                "${config:libviso2.imagesPrefixLeft}",
+                "${config:libviso2.imagesPrefixRight}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal",
+            "preLaunchTask": "(LibViso2 App) Build [Debug]"
+        },
+        {
+            "name": "(Release) Clean & Rebuild",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/libviso2gui.exe",
+            "args": [
+                "${config:libviso2.imagesPath}",
+                "${config:libviso2.imagesPrefixLeft}",
+                "${config:libviso2.imagesPrefixRight}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal",
+            "preLaunchTask": "(LibViso2 App) Clean and Rebuild [Release]"
+        },
+        {
+            "name": "(Release) Build",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/libviso2gui.exe",
+            "args": [
+                "${config:libviso2.imagesPath}",
+                "${config:libviso2.imagesPrefixLeft}",
+                "${config:libviso2.imagesPrefixRight}"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal",
+            "preLaunchTask": "(LibViso2 App) Build [Release]"
+        }
+    ]
+}

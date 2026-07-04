@@ -1,0 +1,89 @@
+# Build output (root app + libviso2 lib, wherever they live)
+build/
+/out/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+_deps/
+
+# Compiled object / intermediate files
+*.slo
+*.lo
+*.o
+*.obj
+*.exp
+*.ilk
+*.pdb
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Executables
+*.exe
+*.out
+*.app
+
+# ============================================================
+# Prebuilt dependencies -> KEEP THESE COMMITTED
+# They act as a baseline for anyone who doesn't have the
+# libraries (especially libpng/zlib whose sources we don't
+# redistribute). Listed explicitly so the generic rules above
+# (e.g. *.exp / build/) don't accidentally ignore them.
+# ============================================================
+!libs/bin/
+!libs/lib/
+!libs/bin/**
+!libs/lib/**
+
+# IDE - Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sdf
+*.opensdf
+*.vcxproj.filters
+*.vcproj.filters
+ipch/
+
+# IDE - VS Code (keep the shared project config)
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/scripts/
+*.code-workspace
+
+# IDE - JetBrains (CLion)
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Project specifics
+# Datasets are large and downloaded separately (see README) -> keep them out of git.
+# Everything else under assets/ (e.g. screenshots referenced by the README) stays tracked.
+assets/datasets/
+
+# Temp files
+temp/

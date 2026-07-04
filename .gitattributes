@@ -1,0 +1,15 @@
+# Enforce LF line endings everywhere (Windows / macOS / Linux) so the repository
+# stays byte-identical across platforms. These attributes override core.autocrlf.
+* text=auto eol=lf
+
+# Binary files: never apply line-ending conversion (explicit safety on top of
+# Git's auto-detection, e.g. for vendored libs and README screenshots).
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.dll  binary
+*.lib  binary
+*.exp  binary
+*.pdb  binary
+*.exe  binary
