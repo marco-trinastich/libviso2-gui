@@ -1,6 +1,6 @@
 # Project info
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_GENERATOR_PLATFORM Win32)
+# Target platform (Win32 / x64 / ARM64) is selected at configure time via -A.
 project(libviso2 VERSION 1.0 LANGUAGES CXX)
 
 # Set C++ standard
@@ -53,3 +53,9 @@ install(FILES ${HEADERS} DESTINATION include/libviso2)
 
 # Suppress warnings (e.g. possible loss of data, float to int conversions)
 target_compile_options(${PROJECT_NAME} PRIVATE "/wd4244")
+
+# On ARM64 the SSE intrinsics are bridged to NEON via sse2neon.h, which requires
+# MSVC's conforming preprocessor.
+if(CMAKE_VS_PLATFORM_NAME STREQUAL "ARM64")
+    target_compile_options(${PROJECT_NAME} PRIVATE "/Zc:preprocessor")
+endif()

@@ -20,11 +20,18 @@
                 "Bypass",
                 "-File",
                 "${workspaceFolder}\\.vscode\\scripts\\cmake-configure.ps1",
-                "../"
+                "-SourceDir",
+                "../",
+                "-Platform",
+                "${config:libviso2.targetPlatform}"
             ],
             "options": {
                 "cwd": "${workspaceFolder}/build"
             },
+            "dependsOn": [
+                "(Dependencies) Build"
+            ],
+            "dependsOrder": "sequence",
             "problemMatcher": [],
             "isBackground": false
         },
@@ -107,50 +114,41 @@
             "problemMatcher": []
         },
         {
-            "label": "(LibViso2 Lib) Clean",
-            "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-Command",
-                "if (Test-Path libs/include/libviso2/build) { Remove-Item -Recurse -Force libs/include/libviso2/build }; New-Item -ItemType Directory -Path libs/include/libviso2/build"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "(LibViso2 Lib) Configure",
+            "label": "(Dependencies) Build",
             "type": "process",
             "command": "powershell",
             "args": [
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}\\.vscode\\scripts\\cmake-configure.ps1",
-                "../"
+                "${workspaceFolder}\\.vscode\\scripts\\build-dependencies.ps1",
+                "-Platform",
+                "${config:libviso2.targetPlatform}"
             ],
             "options": {
-                "cwd": "${workspaceFolder}/libs/include/libviso2/build"
+                "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [],
+            "problemMatcher": [
+                "$msCompile"
+            ],
             "isBackground": false
         },
         {
-            "label": "(LibViso2 Lib) Build [Release]",
+            "label": "(Dependencies) Rebuild",
             "type": "process",
             "command": "powershell",
             "args": [
                 "-ExecutionPolicy",
                 "Bypass",
                 "-File",
-                "${workspaceFolder}\\.vscode\\scripts\\cmake-build.ps1",
-                ".",
-                "Release"
+                "${workspaceFolder}\\.vscode\\scripts\\build-dependencies.ps1",
+                "-Platform",
+                "${config:libviso2.targetPlatform}",
+                "-Force"
             ],
             "options": {
-                "cwd": "${workspaceFolder}/libs/include/libviso2/build"
+                "cwd": "${workspaceFolder}"
             },
-            "dependsOn": [
-                "(LibViso2 Lib) Configure"
-            ],
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -159,33 +157,6 @@
                 "$msCompile"
             ],
             "isBackground": false
-        },
-        {
-            "label": "(LibViso2 Lib) Deploy to libs",
-            "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-Command",
-                "$d = Get-ChildItem 'libs/include/libviso2/build' -Recurse -Filter 'libviso2.dll' | Sort-Object LastWriteTime -Descending | Select-Object -First 1; $l = Get-ChildItem 'libs/include/libviso2/build' -Recurse -Filter 'libviso2.lib' | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if (-not $d) { Write-Error 'libviso2.dll non trovata sotto libs/include/libviso2/build (compila prima la lib)'; exit 1 }; if (-not $l) { Write-Error 'libviso2.lib non trovata sotto libs/include/libviso2/build (compila prima la lib)'; exit 1 }; Copy-Item $d.FullName 'libs/bin/libviso2.dll' -Force; Copy-Item $l.FullName 'libs/lib/libviso2.lib' -Force; Write-Host \"Deployed: $($d.FullName) -> libs/bin/libviso2.dll\"; Write-Host \"Deployed: $($l.FullName) -> libs/lib/libviso2.lib\""
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": []
-        },
-        {
-            "label": "(LibViso2 Lib) Clean and Rebuild [Release]",
-            "dependsOn": [
-                "(LibViso2 Lib) Clean",
-                "(LibViso2 Lib) Build [Release]",
-                "(LibViso2 Lib) Deploy to libs"
-            ],
-            "dependsOrder": "sequence",
-            "group": {
-                "kind": "build",
-                "isDefault": false
-            },
-            "problemMatcher": []
         }
     ]
 }

@@ -23,6 +23,15 @@ _deps/
 *.ilk
 *.pdb
 
+# MSVC / MSBuild intermediate & log artifacts (never commit these)
+*.tlog
+*.sbr
+*.bsc
+*.res
+*.lastbuildstate
+*.recipe
+*.idb
+
 # Precompiled headers
 *.gch
 *.pch
@@ -33,16 +42,16 @@ _deps/
 *.app
 
 # ============================================================
-# Prebuilt dependencies -> KEEP THESE COMMITTED
-# They act as a baseline for anyone who doesn't have the
-# libraries (especially libpng/zlib whose sources we don't
-# redistribute). Listed explicitly so the generic rules above
-# (e.g. *.exp / build/) don't accidentally ignore them.
+# Prebuilt dependencies (zlib / libpng / libviso2), per target platform.
+#  - Win32 binaries are COMMITTED: the default, zero-friction build baseline
+#    (especially for libpng/zlib whose sources we don't redistribute).
+#  - Other targets (x64 / ARM64) are generated on-demand by the
+#    "Dependencies Build" task -> git-ignored.
 # ============================================================
-!libs/bin/
-!libs/lib/
-!libs/bin/**
-!libs/lib/**
+libs/bin/*/
+libs/lib/*/
+!libs/bin/Win32/
+!libs/lib/Win32/
 
 # IDE - Visual Studio
 .vs/

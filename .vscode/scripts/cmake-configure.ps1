@@ -1,6 +1,12 @@
 param(
     [Parameter(Mandatory=$true)]
-    [string]$SourceDir
+    [string]$SourceDir,
+
+    # Target platform passed to the Visual Studio generator (-A).
+    # Defaults to Win32 to preserve the existing behavior.
+    [Parameter(Mandatory=$false)]
+    [ValidateSet('Win32', 'x64', 'ARM64')]
+    [string]$Platform = 'Win32'
 )
 
 # Detect host architecture from environment variables
@@ -22,11 +28,13 @@ $cmakePath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhe
 
 if ($cmakePath) {
     Write-Host "Using CMake from: $cmakePath"
-    
-    # Additional CMake arguments to specify the host architecture
+    Write-Host "Target platform: $Platform"
+
+    # -A selects the TARGET platform (Win32/x64/ARM64); -T host=... keeps the
+    # native host toolchain for fast compilation, independent of the target.
     $cmakeArgs = @(
         $SourceDir,
-        "-A", "Win32",
+        "-A", $Platform,
         "-T", "host=$hostArch"
     )
     
