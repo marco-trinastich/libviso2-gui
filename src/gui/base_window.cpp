@@ -117,7 +117,7 @@ LRESULT CALLBACK BaseWindow::s_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         LPCREATESTRUCT pcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
         pThis = reinterpret_cast<BaseWindow *>(pcs->lpCreateParams);
 
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, PtrToUlong(pThis));
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
         lRet = DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
     else
