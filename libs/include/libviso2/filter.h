@@ -22,8 +22,14 @@ Street, Fifth Floor, Boston, MA 02110-1301, USA
 #ifndef FILTER_H
 #define FILTER_H
 
+#if defined(__aarch64__) || defined(_M_ARM64)
+// On ARM64 there is no SSE; sse2neon.h maps the SSE2/SSE3 intrinsics used here
+// (and _mm_malloc/_mm_free) onto NEON.
+#include "sse2neon.h"
+#else
 #include <emmintrin.h>
 #include <pmmintrin.h>
+#endif
 
 // define fixed-width datatypes for Visual Studio projects
 #ifndef _MSC_VER

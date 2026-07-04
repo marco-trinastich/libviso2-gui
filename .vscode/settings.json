@@ -2,6 +2,7 @@
     "libviso2.imagesPath": "./assets/datasets/libviso2/2010_03_09_drive_0019",
     "libviso2.imagesPrefixLeft": "/p1=I1",
     "libviso2.imagesPrefixRight": "/p2=I2",
+    "libviso2.targetPlatform": "Win32",
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.eol": "\n",
     "files.associations": {

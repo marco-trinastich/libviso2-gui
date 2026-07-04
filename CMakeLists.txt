@@ -1,27 +1,38 @@
 # Project info
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_GENERATOR_PLATFORM Win32)
+# Target platform (Win32 / x64 / ARM64) is chosen at configure time via -A,
+# NOT hardcoded here. See .vscode/scripts/cmake-configure.ps1 (-Platform).
 project(libviso2gui VERSION 1.0 LANGUAGES C CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Dependency artifacts are organized per target platform under libs/bin|lib/<platform>.
+# CMAKE_VS_PLATFORM_NAME reflects the -A value chosen at configure time (Win32/x64/ARM64).
+set(DEP_PLATFORM "${CMAKE_VS_PLATFORM_NAME}")
+if(NOT DEP_PLATFORM)
+    set(DEP_PLATFORM "Win32") # fallback for non-Visual Studio generators
+endif()
+set(DEP_BIN "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/${DEP_PLATFORM}")
+set(DEP_LIB "${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/${DEP_PLATFORM}")
+message(STATUS "LibViso2 GUI: dependency artifacts for platform '${DEP_PLATFORM}' -> ${DEP_BIN}")
+
 # Dependencies
 
 # ZLIB
 add_library(zlib SHARED IMPORTED)
 set_target_properties(zlib PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/zlib.dll"
-    IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/zlib.lib"
+    IMPORTED_LOCATION "${DEP_BIN}/zlib.dll"
+    IMPORTED_IMPLIB "${DEP_LIB}/zlib.lib"
 )
 target_include_directories(zlib INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/libs/include/zlib")
 
 # PNG
 add_library(png SHARED IMPORTED)
 set_target_properties(png PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/libpng14.dll"
-    IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libpng14.lib"
+    IMPORTED_LOCATION "${DEP_BIN}/libpng14.dll"
+    IMPORTED_IMPLIB "${DEP_LIB}/libpng14.lib"
 )
 target_include_directories(png INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/libs/include/png")
 
@@ -32,8 +43,8 @@ target_include_directories(png++ INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/libs/inc
 # LibViso2
 add_library(libviso2 SHARED IMPORTED)
 set_target_properties(libviso2 PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/libviso2.dll"
-    IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libviso2.lib"
+    IMPORTED_LOCATION "${DEP_BIN}/libviso2.dll"
+    IMPORTED_IMPLIB "${DEP_LIB}/libviso2.lib"
 )
 target_include_directories(libviso2 INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/libs/include/libviso2")
 
@@ -66,19 +77,17 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     libviso2
 )
 
-# Install required DLLs
-install(FILES 
-    "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/libviso2.dll"
-    "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/libpng14.dll"
-    "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/zlib.dll"
-    "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin/msvcr120d.dll"
+# Install required DLLs for the selected platform (whatever exists in DEP_BIN,
+# e.g. msvcr120d.dll ships only with the Win32 prebuilt set).
+install(DIRECTORY "${DEP_BIN}/"
     DESTINATION bin
+    FILES_MATCHING PATTERN "*.dll"
 )
 
-# Copy DLLs to output directory for development
+# Copy the platform's dependency DLLs next to the built exe (for development runs)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_CURRENT_SOURCE_DIR}/libs/bin"
+    "${DEP_BIN}"
     $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
 
@@ -116,3 +125,9 @@ endif()
 
 # Suppress warnings (e.g. possible loss of data, float to int conversions)
 target_compile_options(${PROJECT_NAME} PRIVATE "/wd4244")
+
+# The app includes libviso2 headers, which on ARM64 pull in sse2neon.h; that
+# header requires MSVC's conforming preprocessor.
+if(DEP_PLATFORM STREQUAL "ARM64")
+    target_compile_options(${PROJECT_NAME} PRIVATE "/Zc:preprocessor")
+endif()
